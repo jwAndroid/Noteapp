@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:title="Note">
+
+        <menu>
+            <item
+                android:id="@+id/notes"
+                android:icon="@drawable/ic_baseline_event_note_24"
+                android:title="Notes"/>
+
+            <item
+                android:id="@+id/addNote"
+                android:icon="@drawable/ic_baseline_add_circle_24"
+                android:title="Add Note" />
+
+        </menu>
+    </item>
+
+    <item android:title="Support">
+
+        <menu>
+
+            <item
+                android:id="@+id/rating"
+                android:icon="@drawable/ic_baseline_engineering_24"
+                android:title="Developer Blog" />
+
+            <item
+                android:id="@+id/shareapp"
+                android:icon="@drawable/ic_baseline_share_24"
+                android:title="Share" />
+
+        </menu>
+
+    </item>
+
+    <item android:title="Logout">
+        <menu>
+
+            <item
+                android:id="@+id/login"
+                android:icon="@drawable/ic_baseline_login_24"
+                android:title="Login" />
+
+            <item
+                android:id="@+id/register"
+                android:icon="@drawable/ic_baseline_person_add_alt_1_24"
+                android:title="Register" />
+
+            <item
+                android:id="@+id/logout"
+                android:icon="@drawable/ic_baseline_vpn_key_24"
+                android:title="Logout" />
+
+
+
+        </menu>
+    </item>
+
+</menu>

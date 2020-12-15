@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "684667526075",
+    "project_id": "onenote-fc57f",
+    "storage_bucket": "onenote-fc57f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:684667526075:android:fab0f78a2ee6e09987029e",
+        "android_client_info": {
+          "package_name": "com.example.onenote"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "684667526075-1ijjvspd4qmdf6kl7hkjt49nhpqdkemt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.onenote",
+            "certificate_hash": "51e2bdf0d23820244cecf8deb4ce8d41caf064ef"
+          }
+        },
+        {
+          "client_id": "684667526075-l4lshs46eq5k0to04iugecpn5pt1n1ju.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWkDS5VT7B1kkA1CggvUKX9geOAcmYjGw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "684667526075-l4lshs46eq5k0to04iugecpn5pt1n1ju.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

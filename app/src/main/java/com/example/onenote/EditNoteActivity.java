@@ -50,57 +50,50 @@ public class EditNoteActivity extends AppCompatActivity {
         intent = getIntent();
         String noteTitle = intent.getStringExtra("title");
         String noteContent = intent.getStringExtra("content");
-        String noteId = intent.getStringExtra("noteId");
+        String noteId = intent.getStringExtra("noteId"); //스냅샷 고유 id
+        Log.d(TAG, "onCreate: " +noteTitle + noteContent + noteId );
 
-        editNoteTitle.setText(noteTitle);
+        editNoteTitle.setText(noteTitle); //기존값 세팅
         editNoteContent.setText(noteContent);
 
         FloatingActionButton fab = findViewById(R.id.saveEditedNote);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        fab.setOnClickListener(v -> {
 
-                String nTitle = editNoteTitle.getText().toString();
-                String nContent = editNoteContent.getText().toString();
+            String nTitle = editNoteTitle.getText().toString();
+            String nContent = editNoteContent.getText().toString();
 
-                if(nTitle.isEmpty() || nContent.isEmpty()){
-                    Toast.makeText(EditNoteActivity.this, "Can not Save note with Empty Field.", Toast.LENGTH_SHORT).show();
-                }
+            if(nTitle.isEmpty() || nContent.isEmpty()){
+                Toast.makeText(EditNoteActivity.this, "빈 텍스트는 할 수 없습니다.", Toast.LENGTH_SHORT).show();
+            }
 
-                progressBar.setVisibility(View.VISIBLE);
+            progressBar.setVisibility(View.VISIBLE);
 
-                DocumentReference documentReference = firebaseFirestore
-                        .collection("notes")
-                        .document(user.getUid())
-                        .collection("myNotes")
-                        .document(noteId);
+            DocumentReference documentReference = firebaseFirestore
+                    .collection("notes")
+                    .document(user.getUid())
+                    .collection("myNotes")
+                    .document(noteId);
 
-                /*  DocumentReference DB collection ,notes로 document() 진행 */
-                Map<String , Object> hashMap = new HashMap<>(); /*  Hash로 nTitle , nContent 를 documentReference.set(hashMap)  */
-                hashMap.put("title" , nTitle);
-                hashMap.put("content" , nContent);
+            /*  DocumentReference DB collection ,notes로 document() 진행 */
+            Map<String , Object> hashMap = new HashMap<>(); /*  Hash로 nTitle , nContent 를 documentReference.set(hashMap)  */
+            hashMap.put("title" , nTitle);
+            hashMap.put("content" , nContent);
 
-                /*  중요 : documentReference.update --- > addOnCompleteListener or addOnFailureListener 제어 */
-                documentReference.update(hashMap)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                /* HashMap - > documentReference update후 startActivity */
-                                Toast.makeText(EditNoteActivity.this , "수정 완료" , Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(EditNoteActivity.this , MainActivity.class));
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
+            /*  이쪽에서는 set 이 아니라 update를 진행해야한다
+            : documentReference.update --- > addOnCompleteListener or addOnFailureListener 제어 */
+            documentReference.update(hashMap)
+                    .addOnCompleteListener(task -> {
+                        /* HashMap - > documentReference update후 startActivity */
+                        Toast.makeText(EditNoteActivity.this , "수정 완료" , Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(EditNoteActivity.this , MainActivity.class));
+                    }).addOnFailureListener(e -> {
                         Toast.makeText(EditNoteActivity.this , "업로드 실패" , Toast.LENGTH_SHORT).show();
                         Log.d(TAG , e.getMessage());
                         progressBar.setVisibility(View.GONE);
-                    }
-                });
+                    });
 
 
 
-            }
         });
 
     }

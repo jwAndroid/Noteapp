@@ -61,14 +61,17 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
     private static final String TAG = "MainActivity" ;
-    //DrawerLayout 전역setting
+
+    //DrawerLayout UI 셋팅
     DrawerLayout drawerLayout;
     ActionBarDrawerToggle toggle;
     NavigationView nav_view;
 
-    NoteListAdapter adapter;
+    NoteListAdapter adapter; /*테스트용으로 만들어 뒀던거 */
     RecyclerView noteLists;
 
+    /*realTime db가 아닌 Firestore로 진행하며 , 메인에서 FirestoreRecyclerAdapter 라는어댑터를 사용할것
+    * */
     FirebaseFirestore firebaseFirestore;
     FirebaseUser user;
     FirebaseAuth firebaseAuth;
@@ -89,14 +92,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //TODO : GET USER.UID(); --> 유저의 객체마다 유아이디를 따로 변수값으로
         //TODO : 저장해서 쿼리 document에 장착해주기 --> 회원의 NOTE document 생성
 
-        noteLists = findViewById(R.id.noteList);
+        noteLists = findViewById(R.id.noteList); //recyclerview
 
-        /* 중요 : User 개인의 uid에 접근해서 myNotes 데이터 접근 Query 후에 options  /// Query > user uid > myNotes > ... */
+        /* 중요 : User 개인의 uid에 접근해서 myNotes 데이터에 접근 Query 후에 options  // Query > user uid > myNotes > ...
+        * ADD NOTE ACTIVITY >> DB 저장 >> 이쪽에서 쿼리
+        * 쿼리 => 그대로 리사이클러뷰에 셋팅 어댑터 장착
+        * 이렇게 메인쪽에서 DB 쿼리만 진행 */
+
         Query query = firebaseFirestore.collection("notes")
                 .document(user.getUid())
                 .collection("myNotes")
                 .orderBy("title" , Query.Direction.DESCENDING);
-
         FirestoreRecyclerOptions<Note> options = new FirestoreRecyclerOptions.Builder<Note>()
                 .setQuery(query , Note.class)
                 .build();
@@ -106,86 +112,70 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             protected void onBindViewHolder(@NonNull NoteViewHolder holder, int position, @NonNull Note note) {
 
-                String noteSnapshotId = firestoreRecyclerNoteAdapter.getSnapshots().getSnapshot(position).getId();
+                String noteSnapshotId = firestoreRecyclerNoteAdapter
+                        .getSnapshots()
+                        .getSnapshot(position)
+                        .getId();
+                Log.d(TAG, "notesnapshotID: " + noteSnapshotId );
+
                 String intentTitle = note.getTitle();
                 String intentContent = note.getContent();
                 final int colorCode = getRandomColor();
-
                 holder.noteTitle.setText(intentTitle);
                 holder.noteContent.setText(intentContent);
                 holder.mCardView.setCardBackgroundColor(holder.view.getResources().getColor(colorCode , null));
 
-                holder.view.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(MainActivity.this , NoteDetailsActivity.class);
-                        intent.putExtra("title",note.getTitle());
-                        intent.putExtra("content",note.getContent());
-                        intent.putExtra("colorCode",colorCode);
-                        intent.putExtra("noteId" , noteSnapshotId);
-                        startActivity(intent);
-                    }
+                holder.view.setOnClickListener(v -> {
+                    Intent intent = new Intent(MainActivity.this , NoteDetailsActivity.class);
+                    intent.putExtra("title",note.getTitle());
+                    intent.putExtra("content",note.getContent());
+                    intent.putExtra("colorCode",colorCode);
+                    intent.putExtra("noteId" , noteSnapshotId);
+                    startActivity(intent);
                 });
 
                 /* 중요 : holder.view 의대한 값으로 findviewById 진행 후 menuIcon 클릭이벤트 정의  */
                 ImageView menuIcon = holder.view.findViewById(R.id.menuIcon);
-                menuIcon.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View clickView) {
-                        /* PopupMenu 객체생성후 클릭이벤트 뷰의대한getContext,clickView의 파라메터
-                           add를 통해 EditNote 과 Delete PopupMenu 생성후 각부분 제어 */
-                        PopupMenu menu = new PopupMenu(clickView.getContext() , clickView);
-                        menu.setGravity(Gravity.END); // setGravity END쪽으로
-                        menu.getMenu().add("Edit").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                            @Override
-                            public boolean onMenuItemClick(MenuItem item) {
-                           /* EditNote --> EditNoteActivity 로 intent 하면서 세가지 data putExtra 후EditNoteActivity 쪽 그대로 동일하게 실행  */
-                                Intent intent = new Intent(MainActivity.this , EditNoteActivity.class);
-                                intent.putExtra("title" ,intentTitle);
-                                intent.putExtra("content" ,intentContent);
-                                intent.putExtra("noteId" ,noteSnapshotId);
-                                startActivity(intent);
+                menuIcon.setOnClickListener(clickView -> {
 
-                                return false;
-                            }
-                        });
+                    /* PopupMenu 객체생성후 클릭이벤트 뷰의대한getContext,clickView의 파라메터
+                       add를 통해 EditNote 과 Delete PopupMenu 생성후 각부분 제어 */
+                    PopupMenu menu = new PopupMenu(clickView.getContext() , clickView);
+                    menu.setGravity(Gravity.END); // setGravity END쪽으로
+                    menu.getMenu().add("Edit").setOnMenuItemClickListener(item -> {
 
-                        menu.getMenu().add("Delete").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                            @Override
-                            public boolean onMenuItemClick(MenuItem item) {
-                                /* collection "notes"쪽에서 --> document(noteId)쪽의 delete()후 성공or실패 제어 */
-                                DocumentReference documentReference = firebaseFirestore
-                                        .collection("notes")
-                                        .document(user.getUid())
-                                        .collection("myNotes")
-                                        .document(noteSnapshotId);
+                   /* EditNote --> EditNoteActivity 로 intent 하면서 세가지 data putExtra 후EditNoteActivity 쪽 그대로 동일하게 실행  */
+                        Intent intent = new Intent(MainActivity.this , EditNoteActivity.class);
+                        intent.putExtra("title" ,intentTitle);
+                        intent.putExtra("content" ,intentContent);
+                        intent.putExtra("noteId" ,noteSnapshotId);
+                        startActivity(intent);
 
-                                documentReference.delete()
-                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-                                                Toast.makeText(MainActivity.this,
-                                                        intentTitle+ ":" + "Delete!",
-                                                        Toast.LENGTH_SHORT).show();
-                                            }
-                                        })
-                                        .addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-                                                Toast.makeText(MainActivity.this ,
-                                                        "OnFailure"+e.getMessage() ,
-                                                        Toast.LENGTH_SHORT).show();
+                        return false;
+                    });
 
-                                            }
-                                        });
+                    menu.getMenu().add("Delete").setOnMenuItemClickListener(item -> {
 
-                                return false;
-                            }
-                        });
+                        /* collection "notes"쪽에서 --> document(noteId)쪽의 delete()후 성공or실패 제어 */
+                        DocumentReference documentReference = firebaseFirestore
+                                .collection("notes")
+                                .document(user.getUid())
+                                .collection("myNotes")
+                                .document(noteSnapshotId);
 
-                        menu.show();
+                        documentReference.delete()
+                                .addOnCompleteListener(task -> Toast.makeText(MainActivity.this,
+                                        intentTitle+ ":" + "Delete!",
+                                        Toast.LENGTH_SHORT).show())
+                                .addOnFailureListener(e -> Toast.makeText(MainActivity.this ,
+                                        "OnFailure"+e.getMessage() ,
+                                        Toast.LENGTH_SHORT).show());
 
-                    }
+                        return false;
+                    });
+
+                    menu.show();
+
                 });
 
             }
@@ -198,7 +188,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         };/* .................... firestoreRecyclerNoteAdapter .................... */
 
-
            /*
              TODO 1 : 어댑터 view click -- > intent note activity --> editText data insert ! && save && firebase server save --> 리사이클러뷰 셋
              TODO 2 : RANDOM으로 리사이클러뷰 아이템 BACKGROUND COLOR SETTING
@@ -208,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
              리사이클러뷰와 어댑터 세팅 레이아웃 매니저로 두가지 형태를 쓸수있다.
              첫째로 noteLists.setLayoutManager(new LinearLayoutManager(MainActivity.this));
              둘쨰로 StaggeredGridLayoutManager
-                  */
+           */
 
         //Drawer setting
         drawerLayout = findViewById(R.id.drawer);
@@ -220,6 +209,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toggle.syncState();
 
         noteLists.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        /*위에서 만든 어댑터 그대로 껴준다.  */
         noteLists.setAdapter(firestoreRecyclerNoteAdapter);
 
         /* isAnonymous 와 real 일떄의 유저profile data set  */
@@ -238,15 +228,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         /* Drawer -> addNote -> addNoteActivity를 굳이 거치지않아도 동작되게 처리 */
         FloatingActionButton fab = findViewById(R.id.addNoteFloat);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                /*  case R.id.addNote 와 동일하게 intent  */
-                startActivity(new Intent(MainActivity.this , AddNoteActivity.class));
-                overridePendingTransition(R.anim.slide_up,R.anim.slide_down);
-            }
+        fab.setOnClickListener(v -> {
+            /*  case R.id.addNote 와 동일하게 intent  */
+            startActivity(new Intent(MainActivity.this , AddNoteActivity.class));
+            overridePendingTransition(R.anim.slide_up,R.anim.slide_down);
         });
 
+        /*searchBox >> Query객체로 title을 orderBy 해준다음에 setQuery 해주는부분 */
         searchBox.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -261,14 +249,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void afterTextChanged(Editable s) {
                 Log.d(TAG , "SearchBox afterTextChanged : " + s.toString());
-                Query query;
+                Query query; /* Firestore db collection 데이터 쿼리  */
+
                 if (s.toString().isEmpty()){
-                    query = firebaseFirestore.collection("notes")
-                            .document(user.getUid())
-                            .collection("myNotes")
-                            .orderBy("title" , Query.Direction.DESCENDING);
+                    /* 공백이라면 원래 담겨있던 데이터를 할당 */
+                    query = firebaseFirestore.collection("notes") //notes의
+                            .document(user.getUid()) //user아이디의
+                            .collection("myNotes") //myNotes의 쪽에서
+                            .orderBy("title" , Query.Direction.DESCENDING); //title을 정렬함.(orderBy)
 
                 }else{
+                    /*뭔가 적었다면 */
                     query = firebaseFirestore.collection("notes")
                             .document(user.getUid())
                             .collection("myNotes")
@@ -276,7 +267,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             .orderBy("title" , Query.Direction.DESCENDING);
 
                 }
-
                 FirestoreRecyclerOptions<Note> options = new FirestoreRecyclerOptions.Builder<Note>()
                         .setQuery(query , Note.class)
                         .build();
@@ -287,7 +277,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }// --------------------onCreate -------------------------
 
-    public class NoteViewHolder extends RecyclerView.ViewHolder{
+    /* 파베어댑터를 위한 뷰홀더 */
+    public static class NoteViewHolder extends RecyclerView.ViewHolder{
 
         TextView noteTitle,noteContent;
         View view;
@@ -302,8 +293,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    /* NavigationItemSelected 리스너 item.getItemId() 로써 nav_menu 의 id를 get */
-
+    /* NavigationItemSelected 리스너 item.getItemId() 로써 nav_menu 의 id를 get
+    * UI만들고 화면전환만 하면 끝. */
     @SuppressLint("NonConstantResourceId")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -349,6 +340,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 startActivity(intent);
                 overridePendingTransition(R.anim.slide_up , R.anim.slide_down);
                 break;
+
                 /*- 닫을 때는 반대로 해준다.
                 finish();
                 overridePendingTransition(R.anim.fadeout, R.anim.fadein);
@@ -371,41 +363,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         return false;
     }
-
     private void checkUser() {
         // if user is isAnonymous or not
         if(user.isAnonymous()){
+            /*익명유저다 ? 회원가입 진행할꺼냐 물어보기  */
             displayAlert();
         }else {
+            /*그렇지 않으면 그냥 signOut(); 진행하고 초기화면으로 이동 */
             FirebaseAuth.getInstance().signOut();
             startActivity(new Intent(getApplicationContext() , IntroActivity.class));
         }
     }
-
     private void displayAlert() {
         AlertDialog.Builder warning = new AlertDialog.Builder(this)
                 .setTitle("안내문")
                 .setMessage("임시계정으로 로그인 되어있습니다. 로그아웃시, 임시 노트가 삭제됩니다.")
-                .setPositiveButton("회원가입", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        startActivity(new Intent(getApplicationContext(), RegisterActivity.class));
-                        finish();
-                    }
-                }).setNegativeButton("로그아웃", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // ToDO: delete all the notes created by the Anon user
-                        // TODO: delete the anon user
+                .setPositiveButton("회원가입", (dialog, which) -> {
+                    startActivity(new Intent(getApplicationContext(), RegisterActivity.class));
+                    finish();
 
-                        user.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                startActivity(new Intent(getApplicationContext(),IntroActivity.class));
-                                overridePendingTransition(R.anim.slide_up,R.anim.slide_down);
-                            }
-                        });
-                    }
+                }).setNegativeButton("로그아웃", (dialog, which) -> {
+                    // ToDO: 로그아웃이니까 delete()해주고나서 진행
+                    user.delete().addOnSuccessListener(aVoid -> {
+                        startActivity(new Intent(getApplicationContext(),IntroActivity.class));
+                        overridePendingTransition(R.anim.slide_up,R.anim.slide_down);
+                    });
                 });
 
         warning.show();
@@ -418,7 +400,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         inflater.inflate(R.menu.option_menu , menu); // R.menu.option_menu 를 inflater.inflate
         return super.onCreateOptionsMenu(menu);
     }
-
     //onOptionsItemSelected 생성한 settings 의 클릭이벤트 생성
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
@@ -429,6 +410,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private int getRandomColor() {
+
         /* colors 리소스 data를 List<Integer> colorList 에 add해주고 , Random random = new Random(); 생성한후에
            random.nextInt(colorList.size()); 리스트사이즈만큼의 int number 저장한후에 colorList.get(number); 로 리턴
            즉 , 리스트의 랜덤한 값 리턴 -> 랜덤한 color를 리턴할 수 있다
@@ -448,6 +430,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
+    /*start stop 제어 */
     @Override
     protected void onStart() {
         super.onStart();

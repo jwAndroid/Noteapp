@@ -54,16 +54,13 @@ public class NoteDetailsActivity extends AppCompatActivity {
 
         /* FloatingActionButton setting */
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(NoteDetailsActivity.this , EditNoteActivity.class);
-                intent.putExtra("title" ,intentTitle);
-                intent.putExtra("content" ,intentContent);
-                intent.putExtra("noteId" ,intentNoteId);
-                startActivity(intent);
+        fab.setOnClickListener(view -> {
+            Intent intent = new Intent(NoteDetailsActivity.this , EditNoteActivity.class);
+            intent.putExtra("title" ,intentTitle);
+            intent.putExtra("content" ,intentContent);
+            intent.putExtra("noteId" ,intentNoteId);
+            startActivity(intent);
 
-            }
         });
 
     }

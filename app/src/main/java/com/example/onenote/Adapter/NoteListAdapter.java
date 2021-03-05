@@ -62,29 +62,28 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.ViewHo
         holder.noteTitle.setText(titles.get(position));
         holder.noteContent.setText(content.get(position));
         final int colorCode = getRandomColor();
+
         /* holder의 mCardView 에 holder.view.getResources()
-                .getColor() holder의 값으로 들어가야함. 그후에 getRandomColor() 를 세팅한다.
+             .getColor() holder의 값으로 들어가야함. 그후에 getRandomColor() 를 세팅한다.
                 그리고 만약 밑의 홀더에서 랜덤클래스를 사용하고 int colorCode = getRandomColor();
                 이쪽에서도 랜덤클래스를 사용하면 2번의 랜덤을 거치게 되기떄문에 하나의 랜덤으로 통일시켜준다.
                  */
+
         holder.mCardView.setCardBackgroundColor(holder.view.getResources()
                 .getColor(colorCode , null)
         );
 
         /*holder의 view의 대한 클릭이벤트 테스트*/
-        holder.view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(context , NoteDetailsActivity.class);
-                /* NoteDetailsActivity 로 Intent 할떄 3가지를 putExtra 한다.
-                   당연히 List의 내용 , 제목 , 그리고 컬러를 넘긴다.  */
+        holder.view.setOnClickListener(v -> {
+            Intent intent = new Intent(context , NoteDetailsActivity.class);
+            /* NoteDetailsActivity 로 Intent 할떄 3가지를 putExtra 한다.
+               당연히 List의 내용 , 제목 , 그리고 컬러를 넘긴다.  */
 
-                intent.putExtra("title",titles.get(position));
-                intent.putExtra("content",content.get(position));
-                intent.putExtra("colorCode",colorCode);
-                context.startActivity(intent);
+            intent.putExtra("title",titles.get(position));
+            intent.putExtra("content",content.get(position));
+            intent.putExtra("colorCode",colorCode);
+            context.startActivity(intent);
 
-            }
         });
 
     }

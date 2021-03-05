@@ -57,54 +57,47 @@ public class AddNoteActivity extends AppCompatActivity {
 
         /* FirebaseFirestore 로 save 작업  */
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        fab.setOnClickListener(view -> {
 
-                String nTitle = noteTitle.getText().toString();
-                String nContent = noteContent.getText().toString();
+            String nTitle = noteTitle.getText().toString();
+            String nContent = noteContent.getText().toString();
 
-                /* 둘중하나가 isEmpty 이라면 제어 */
-                if (nTitle.isEmpty() || nContent.isEmpty()){
-                    Toast.makeText(AddNoteActivity.this , "제목과 내용을 작성해주세요." , Toast.LENGTH_SHORT).show();
-                    return;
-                }
+            /* 둘중하나가 isEmpty 이라면 제어 */
+            if (nTitle.isEmpty() || nContent.isEmpty()){
+                Toast.makeText(AddNoteActivity.this , "제목과 내용을 작성해주세요." , Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-                progressBarSave.setVisibility(View.VISIBLE); /*  progressBar start */
+            progressBarSave.setVisibility(View.VISIBLE); /*  progressBar start */
 
-                /*  DocumentReference로의 DB SETTING */
-                DocumentReference documentReference = firebaseFirestore
-                        .collection("notes")
-                        .document(user.getUid())
-                        .collection("myNotes")
-                        .document();
+            /*  DocumentReference로의 DB SETTING 시작  */
+            DocumentReference documentReference = firebaseFirestore //레퍼런스 가져와서
+                    .collection("notes")
+                    .document(user.getUid())
+                    .collection("myNotes")
+                    .document(); /*이쪽으로 써주고 */
 
-                /*  DocumentReference DB collection ,notes로 document() 진행 */
-                Map<String , Object> hashMap = new HashMap<>(); /*  Hash로 nTitle , nContent 를 documentReference.set(hashMap)  */
-                hashMap.put("title" , nTitle);
-                hashMap.put("content" , nContent);
+            /*  DocumentReference DB collection ,notes로 document() 진행 */
+            Map<String , Object> hashMap = new HashMap<>(); /*  Hash로 nTitle , nContent 를 documentReference.set(hashMap)  */
+            hashMap.put("title" , nTitle);
+            hashMap.put("content" , nContent);
+            //해쉬테이블로 묶어서
 
-                /*  set --- > addOnCompleteListener or addOnFailureListener 제어 */
-                documentReference.set(hashMap)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
+            /*  해쉬 데이터를 레퍼런스에 set --- > addOnCompleteListener or addOnFailureListener 제어 */
+            documentReference.set(hashMap)
+                    .addOnCompleteListener(task -> {
                         /* Complete 일때 onBackPressed() */
                             Toast.makeText(AddNoteActivity.this , "업로드 성공" , Toast.LENGTH_SHORT).show();
                             overridePendingTransition(R.anim.slide_up,R.anim.slide_down);
                             finish();
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
+
+                        }).addOnFailureListener(e -> {
                             Toast.makeText(AddNoteActivity.this , "업로드 실패" , Toast.LENGTH_SHORT).show();
                             Log.d(TAG , e.getMessage());
                             progressBarSave.setVisibility(View.GONE);
-                        }
-                    });
+                        });
 
 
-            }
         });
     }
 

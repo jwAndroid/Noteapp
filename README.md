@@ -6,20 +6,18 @@
 
 ## Introduction
 - I developed it for notes.
-You can save content and titles, and you can synchronize your notes by signing up.
-It was made based on Firebase.
+- You can save content and titles, and you can synchronize your notes by signing up.
+- It was made based on Firebase.
 
 ## Development Environment
 - Android Studio 
 - JAVA
+- Firebase RealTime Database
 
 ## Application Version
 - minSdkVersion : 21
 - targetSdkVersion : 30
 
-
 ## APIs
 - NONE
 
-## Database
-- Firebase
